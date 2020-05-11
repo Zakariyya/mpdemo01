@@ -1,11 +1,16 @@
 package cn.anan.mpdemo01.config;
 
+import com.baomidou.mybatisplus.core.injector.ISqlInjector;
+import com.baomidou.mybatisplus.extension.injector.LogicSqlInjector;
+import com.baomidou.mybatisplus.extension.plugins.IllegalSQLInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.PerformanceInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.pagination.optimize.JsqlParserCountOptimize;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -45,6 +50,40 @@ public class MpConfig {
 //    paginationInterceptor.setCountSqlParser(new JsqlParserCountOptimize(true));
     return paginationInterceptor;
   }
+
+
+  /**
+   * 逻辑删除插件
+   */
+  @Bean
+  public ISqlInjector sqlInjector(){
+    return new LogicSqlInjector();
+  }
+
+
+
+  /**
+   * SQL执行效率插件
+   */
+  @Bean
+  @Profile({"dev","test"})// 设置 dev test 环境开启
+  public PerformanceInterceptor performanceInterceptor() {
+//    return new PerformanceInterceptor();
+    PerformanceInterceptor pIntercetor = new PerformanceInterceptor();
+    pIntercetor.setMaxTime(500); // ms, 超过此处设置的ms则sql不执行
+    pIntercetor.setFormat(true);
+    return pIntercetor;
+
+  }
+
+
+
+
+
+
+
+
+
 
 
 

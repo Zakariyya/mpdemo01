@@ -2,8 +2,10 @@ package cn.anan.mpdemo01.service;
 
 import cn.anan.mpdemo01.entity.User;
 import cn.anan.mpdemo01.mapper.UserMapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +16,7 @@ import java.util.List;
 
 
 @SpringBootTest
+@Slf4j
 public class UserServiceTest {
 
   @Autowired
@@ -24,17 +27,17 @@ public class UserServiceTest {
 
   @Test
   public void findAll(){
-    System.out.println("findAll: "+userMapper.selectList(null));
+    log.info("findAll: "+userMapper.selectList(null));
   }
 
   @Test
   public void add(){
     User user = new User();
-    user.setName("东方不败");
+    user.setName("东方不败121");
     user.setAge(11);
     user.setEmail("aaa@gmail.com");
 
-    System.out.println("add: "+userMapper.insert(user));
+    log.info("add: "+userMapper.insert(user));
   }
 
   @Test
@@ -43,7 +46,7 @@ public class UserServiceTest {
     user.setId(1248280269750743041L);
     user.setAge(44);
 
-    System.out.println("update: "+userMapper.updateById(user));
+    log.info("update: "+userMapper.updateById(user));
   }
 
   //测试乐观锁
@@ -54,7 +57,7 @@ public class UserServiceTest {
     //进行修改
     user.setAge(200);
     int i = userMapper.updateById(user);
-    System.out.println("testOptimisticLocker: " + i);
+    log.info("testOptimisticLocker: " + i);
 
   }
 
@@ -64,7 +67,7 @@ public class UserServiceTest {
   public void testSelectDemo1(){
 
     List<User> users = userMapper.selectBatchIds(Arrays.asList(1L, 2L, 3L));
-    System.out.println("多个ID批量查询: " + users);
+    log.info("多个ID批量查询: " + users);
 
   }
 
@@ -88,23 +91,31 @@ public class UserServiceTest {
 
     IPage<User> userIPage = userMapper.selectPage(page, null);
 
-    System.out.println("testPage: 当前页："+page.getCurrent());
-    System.out.println("testPage: 每页数据list集合："+page.getRecords());
-    System.out.println("testPage: 每页显示记录数："+page.getSize());
-    System.out.println("testPage: 总记录数："+page.getTotal());
-    System.out.println("testPage: 总页数："+page.getPages());
+    log.info("testPage: 当前页："+page.getCurrent());
+    log.info("testPage: 每页数据list集合："+page.getRecords());
+    log.info("testPage: 每页显示记录数："+page.getSize());
+    log.info("testPage: 总记录数："+page.getTotal());
+    log.info("testPage: 总页数："+page.getPages());
 
-    System.out.println("testPage: 是否有下一页："+page.hasNext());
-    System.out.println("testPage: 是否有上一页："+page.hasPrevious());
+    log.info("testPage: 是否有下一页："+page.hasNext());
+    log.info("testPage: 是否有上一页："+page.hasPrevious());
 
-    System.out.println("testPage: userIPage : "+userIPage.toString());
+    log.info("testPage: userIPage : "+userIPage.toString());
 
   }
 
-  //批量删除（物理）
+  /**
+   * 批量删除（物理）
+   *
+   * 批量删除（逻辑删除）加入插件
+   * @Bean
+   *   public ISqlInjector sqlInjector(){
+   *     return new LogicSqlInjector();
+   *   }
+   */
   @Test
   public void batchDelete(){
-    int i = userMapper.deleteBatchIds(Arrays.asList(1248278820815794177L));
+    int i = userMapper.deleteBatchIds(Arrays.asList(1259662572083011586L));
   }
 
   //简单的条件查询删除（物理）
@@ -114,6 +125,76 @@ public class UserServiceTest {
     map.put("name", "he");
     map.put("age",10);
     userMapper.deleteByMap(map);
+  }
+
+  //mp实现复杂操作
+  @Test
+  public void testSelectQuery(){
+
+    //创建QueryWrapper对象
+    QueryWrapper<User> wrapper = new QueryWrapper<>();
+
+    /**
+     * 通过QueryWrapper设置条件
+     * ge, gt, le, lt
+     * 查询 age >= 30
+     */
+    wrapper.ge("age", 44);
+    List<User> users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: ge::users:"+users);
+
+    /**
+     * eq, ne(不等于)
+     */
+    wrapper = new QueryWrapper<>();
+    wrapper.eq("age", "东方不败");
+    users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: eq::users:"+users);
+
+
+    /**
+     * between
+     */
+    wrapper = new QueryWrapper<>();
+    wrapper.between("age", 44, 444);
+    users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: between::users:"+users);
+
+    /**
+     * like
+     */
+    wrapper = new QueryWrapper<>();
+    wrapper.like("name", "东");
+    users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: like::users:"+users);
+
+    /**
+     * orderByDesc
+     */
+    wrapper = new QueryWrapper<>();
+    wrapper.orderByDesc("id");
+    users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: orderByDesc::users:"+users);
+
+    /**
+     * last (在语句后面拼接sql)
+     */
+    wrapper = new QueryWrapper<>();
+    wrapper.last("limit 1");
+    users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: orderByDesc::last:"+users);
+
+    /**
+     * 指定查询的列
+     */
+    wrapper = new QueryWrapper<>();
+    wrapper.select("id", "name");
+    users = userMapper.selectList(wrapper);
+    log.info("------------------testSelectQuery :: orderByDesc::select clounm:"+users);
+
+    
+
+
   }
 
 

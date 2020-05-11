@@ -27,4 +27,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     this.setFieldValByName("updateTime", new Date(), metaObject);
 
   }
+
+
 }
